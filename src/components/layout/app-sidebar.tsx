@@ -59,14 +59,14 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
                     isActive={active?.href === item.href}
                     tooltip={item.title}
-                    className="h-9"
+                    className="h-9 hover:bg-sidebar-foreground/6 hover:text-sidebar-foreground data-active:bg-primary/12 data-active:text-primary data-active:hover:bg-primary/16 data-active:hover:text-primary dark:data-active:bg-primary/15"
                   >
                     <Link
                       href={item.href}
