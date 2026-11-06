@@ -170,13 +170,6 @@ This leaves no global client store at all, and avoids unnecessary re-renders:
   - Every chart has a table view, legends sit beside color keys, and identity never relies on color alone.
 - **Security headers** (`X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`), `poweredByHeader` off, and open-redirect-safe `?next=` handling.
 
-## Deployment (Vercel)
-
-1. Deploy the API first and note its URL.
-2. _Add New → Project_, import this repo (framework: Next.js).
-3. Set `API_URL` to the API's production URL (here: `https://doctor-tracker-api-five.vercel.app`, no trailing slash). Optionally set `NEXT_PUBLIC_DEMO_MODE`.
-4. Deploy. The Vercel URL is the live app.
-
 ## Visual evidence
 
 | Desktop                                                             | Mobile                                                     |
