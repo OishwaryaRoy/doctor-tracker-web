@@ -17,7 +17,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
@@ -38,7 +38,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { Interval, StatsOverview } from "@/lib/api/types";
+import type { Interval, PatientCondition, StatsOverview } from "@/lib/api/types";
 import { CONDITION_META, CONDITION_ORDER } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { formatCompact } from "./stat-card";
@@ -183,13 +183,16 @@ export function ConditionChart({ data }: { data: StatsOverview }) {
   const config = Object.fromEntries(
     rows.map((row) => [row.condition, { label: row.label, color: row.fill }]),
   ) satisfies ChartConfig;
+  const percent = (count: number) => (total ? Math.round((count / total) * 100) : 0);
+
+  const [activeKey, setActiveKey] = useState<PatientCondition | null>(null);
+  const active = rows.find((row) => row.condition === activeKey);
 
   return (
     <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="relative mx-auto aspect-square w-full max-w-52">
         <ChartContainer config={config} className="aspect-square h-full w-full">
           <PieChart>
-            <ChartTooltip content={<ChartTooltipContent nameKey="condition" hideLabel />} />
             <Pie
               data={rows}
               dataKey="count"
@@ -201,21 +204,45 @@ export function ConditionChart({ data }: { data: StatsOverview }) {
               startAngle={90}
               endAngle={-270}
               isAnimationActive={false}
+              onMouseEnter={(_, index) => setActiveKey(rows[index]?.condition ?? null)}
+              onMouseLeave={() => setActiveKey(null)}
             >
               {rows.map((row) => (
-                <Cell key={row.condition} fill={row.fill} />
+                <Cell
+                  key={row.condition}
+                  fill={row.fill}
+                  fillOpacity={activeKey && activeKey !== row.condition ? 0.3 : 1}
+                  className="transition-[fill-opacity] duration-150"
+                />
               ))}
             </Pie>
           </PieChart>
         </ChartContainer>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-semibold">{formatCompact(total)}</span>
-          <span className="text-xs text-muted-foreground">admitted</span>
+        <div
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center"
+          aria-live="polite"
+        >
+          <span className="text-2xl font-semibold">
+            {formatCompact(active ? active.count : total)}
+          </span>
+          <span className="max-w-24 text-xs leading-tight text-muted-foreground">
+            {active ? `${active.label} · ${percent(active.count)}%` : "admitted"}
+          </span>
         </div>
       </div>
-      <ul className="space-y-2.5">
+      <ul className="space-y-1" onMouseLeave={() => setActiveKey(null)}>
         {rows.map((row) => (
-          <li key={row.condition} className="flex items-center gap-3 text-sm">
+          <li
+            key={row.condition}
+            tabIndex={0}
+            onMouseEnter={() => setActiveKey(row.condition)}
+            onFocus={() => setActiveKey(row.condition)}
+            onBlur={() => setActiveKey(null)}
+            className={cn(
+              "flex items-center gap-3 rounded-md px-2 py-1 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+              activeKey === row.condition && "bg-muted",
+            )}
+          >
             <span
               className="size-2.5 shrink-0 rounded-full"
               style={{ background: row.fill }}
